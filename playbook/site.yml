@@ -1,0 +1,5 @@
+- name: all
+  hosts: all
+  gather_facts: false
+  roles:
+    - devstack

@@ -1,0 +1,42 @@
+- name: install git
+  apt: name=git state=latest
+  sudo: true
+
+# - name: install openvswitch-switch
+#   apt: name=openvswitch-switch state=latest
+#   sudo: true
+#   register: openvswitch
+#
+# - name: create bridge for neutron
+#   command: ovs-vsctl add-br br-ex
+#   sudo: true
+#   when: openvswitch.changed
+#
+# - name: add eth2 to bridge
+#   command: ovs-vsctl add-port br-ex eth2
+#   sudo: true
+#   when: openvswitch.changed
+
+- name: checkout openstack
+  git:
+    repo: https://github.com/openstack-dev/devstack.git
+    dest: /home/vagrant/devstack
+    version: stable/juno
+  register: repo
+
+- name: copy over devstack config local.conf
+  copy: src=local.conf dest=/home/vagrant/devstack/local.conf
+
+- name: enable eth 2
+  copy: src=rc.local dest=/etc/rc.local mode=0755
+  register: rc_updated
+  sudo: true
+
+- name: start eth 2
+  command: /etc/rc.local
+  when: rc_updated.changed
+  sudo: true
+
+# nova secgroup-add-rule default icmp -1 -1 0.0.0.0/0
+# nova secgroup-add-rule default tcp 22 22 0.0.0.0/0
+# nova secgroup-add-rule default tcp 80 80 0.0.0.0/0
